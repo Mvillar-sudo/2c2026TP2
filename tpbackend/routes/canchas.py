@@ -10,7 +10,7 @@ from mysql.connector import Error as MySQLError
 from datetime import datetime
 from db import get_connection
 from errors import error_response
-from validators.canchas import validar_creacion, validar_modificacion, validar_reglas_horarias
+from tpbackend.validators.canchas import validar_creacion, validar_modificacion, validar_reglas_horarias
 
 canchas_bp = Blueprint("canchas", __name__)
 
