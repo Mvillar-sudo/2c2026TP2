@@ -39,3 +39,14 @@ CREATE TABLE IF NOT EXISTS reservas(
   FOREIGN KEY (id_cancha) references canchas(id_cancha)
 );
 
+-- Tabla de Deportes
+CREATE TABLE IF NOT EXIST deportes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL UNIQUE
+)
+
+-- Carga de datos iniciales
+INSERT INTO deportes (nombre) VALUES
+('Futbol'),
+('Tenis'),
+('Padel');
