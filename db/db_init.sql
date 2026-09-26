@@ -39,3 +39,7 @@ CREATE TABLE IF NOT EXISTS reservas(
   FOREIGN KEY (id_cancha) references canchas(id_cancha)
 );
 
+INSERT INTO deportes (id_deporte, nombre_deporte) VALUES 
+(1, 'Fútbol'),
+(2, 'Tenis'),
+(3, 'Pádel');

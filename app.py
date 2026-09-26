@@ -5,6 +5,7 @@ Creamos la app de Flask y registramos los blueprints de las distintas entidades.
 """
 
 from flask import Flask
+from tpbackend.routes.canchas import canchas_bp
 
 app = Flask(__name__)
 
