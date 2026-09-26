@@ -10,7 +10,7 @@ from mysql.connector import Error as MySQLError
 from datetime import datetime
 from db import get_connection
 from errors import error_response
-from tpbackend.validators.canchas import validar_creacion, validar_modificacion, validar_reglas_horarias
+from tpbackend.validators.canchas import validar_creacion, validar_modificacion, validar_reglas_horarias, validar_filtros_listado
 
 canchas_bp = Blueprint("canchas", __name__)
 
@@ -89,6 +89,107 @@ def crear_cancha():
 
 """
 Pre: La base de datos debe estar activa e 'id' debe ser un entero.
+Post: Devuelve 200 con los datos de la cancha, o 404 si no existe.
+Ante un error de base de datos devuelve 500.
+"""
+@canchas_bp.route("/canchas/<int:id>", methods=["GET"])
+def obtener_cancha(id):
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT id_cancha AS id, nombre_cancha AS nombre, id_deporte,
+                   precio_hora, techada, cancha_activa AS activa
+            FROM canchas WHERE id_cancha = %s
+            """,
+            (id,)
+        )
+        cancha = cursor.fetchone()
+        if not cancha:
+            return error_response(404, "NO_ENCONTRADO", "Recurso no encontrado",
+                                   f"Cancha con id {id} no encontrada")
+
+        cancha['techada'] = bool(cancha['techada'])
+        cancha['activa'] = bool(cancha['activa'])
+
+        return jsonify(cancha), 200
+    except MySQLError as e:
+        return error_response(500, "ERROR_BASE_DE_DATOS",
+                               "Error interno al acceder a la base de datos", str(e))
+    finally:
+        if conn:
+            conn.close()
+
+"""
+Pre: La base de datos debe estar activa y accesible mediante get_connection().
+Post: Devuelve 200 con el listado paginado de canchas (filtradas según los
+parámetros recibidos) y sus enlaces HATEOAS. Ante un parámetro inválido
+devuelve 400. Ante un error de base de datos devuelve 500.
+"""
+@canchas_bp.route("/canchas", methods=["GET"])
+def listar_canchas():
+    error, params = validar_filtros_listado(request.args)
+    if error:
+        return error
+
+    filtros = params["filtros"]
+    limit = params["limit"]
+    offset = params["offset"]
+
+    conn = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        where_clauses = []
+        query_params = []
+
+        if "id_deporte" in filtros:
+            where_clauses.append("id_deporte = %s")
+            query_params.append(filtros["id_deporte"])
+        if "nombre" in filtros:
+            where_clauses.append("LOWER(nombre_cancha) LIKE %s")
+            query_params.append(f"%{filtros['nombre'].lower()}%")
+        if "techada" in filtros:
+            where_clauses.append("techada = %s")
+            query_params.append(filtros["techada"])
+        if "activa" in filtros:
+            where_clauses.append("cancha_activa = %s")
+            query_params.append(filtros["activa"])
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
+        cursor.execute(f"SELECT COUNT(*) AS total FROM canchas {where_sql}", tuple(query_params))
+        total = cursor.fetchone()["total"]
+
+        query = f"""
+            SELECT id_cancha AS id, nombre_cancha AS nombre, id_deporte,
+                   precio_hora, techada, cancha_activa AS activa
+            FROM canchas {where_sql}
+            ORDER BY id_cancha ASC
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(query, tuple(query_params + [limit, offset]))
+        canchas = cursor.fetchall()
+
+        for c in canchas:
+            c["techada"] = bool(c["techada"])
+            c["activa"] = bool(c["activa"])
+
+        links = generar_hateoas(request.base_url, total, limit, offset, "&".join(params["filtros_url"]))
+        return jsonify({"canchas": canchas, "_links": links}), 200
+    except MySQLError as e:
+        return error_response(500, "ERROR_BASE_DE_DATOS",
+                               "Error interno al acceder a la base de datos", str(e))
+    finally:
+        if conn:
+            conn.close()
+
+"""
+Pre: La base de datos debe estar activa e 'id' debe ser un int.
 Post: Modifica los campos solicitados y devuelve 204 No Content, o 400/404/500 ante errores.
 """
 @canchas_bp.route("/canchas/<int:id>", methods=["PATCH"])
