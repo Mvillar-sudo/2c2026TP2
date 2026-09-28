@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS socios(
   socio_activo BOOLEAN default true
 );
 
+INSERT INTO socios (nombre_socio, email, socio_activo) VALUES
+    ('Juan Perez', 'juan.perez@example.com', TRUE),
+    ('Maria Garcia', 'maria.garcia@example.com', TRUE),
+    ('Pedro Lopez', 'pedro.lopez@example.com', FALSE);
+
 CREATE TABLE IF NOT EXISTS reservas(
   id_reserva INT AUTO_INCREMENT PRIMARY KEY,
   id_socio INT NOT NULL,
@@ -39,3 +44,7 @@ CREATE TABLE IF NOT EXISTS reservas(
   FOREIGN KEY (id_cancha) references canchas(id_cancha)
 );
 
+INSERT INTO deportes (id_deporte, nombre_deporte) VALUES 
+(1, 'Fútbol'),
+(2, 'Tenis'),
+(3, 'Pádel');
