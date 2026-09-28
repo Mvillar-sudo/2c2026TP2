@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS socios(
   socio_activo BOOLEAN default true
 );
 
+INSERT INTO socios (nombre_socio, email, socio_activo) VALUES
+    ('Juan Perez', 'juan.perez@example.com', TRUE),
+    ('Maria Garcia', 'maria.garcia@example.com', TRUE),
+    ('Pedro Lopez', 'pedro.lopez@example.com', FALSE);
+
 CREATE TABLE IF NOT EXISTS reservas(
   id_reserva INT AUTO_INCREMENT PRIMARY KEY,
   id_socio INT NOT NULL,
