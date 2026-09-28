@@ -82,8 +82,7 @@ def validar_email(email) -> str:
 # --- Lo que sigue son PROPUESTAS DE AGREGADO a este archivo, para no  ---
 # --- duplicar el manejo de errores ni el armado de links HATEOAS que  ---
 # --- hoy cada blueprint (canchas, socios, reservas) reimplementa por  ---
-# --- su cuenta con pequeñas diferencias. Charlarlo con el grupo antes ---
-# --- de mergear, por si prefieren otro nombre o ubicación.            ---
+# --- su cuenta con pequeñas diferencias. 
 
 def manejar_error(error: ValueError, default_status: int = 400):
     """
